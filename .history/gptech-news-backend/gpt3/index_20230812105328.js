@@ -73,17 +73,21 @@ app.post("/", async (req, res) => {
     content: "You are NewsGPT helpful assistant technologies news chatbot",
   };
   const { message } = req.body;
-  // const messages = { role: "user", content: "Hello world" };
+  //   const { messages } = { role: "user", content: req.body };
+  //   const { message } = JSON.parse(req.body);
+
+  //   const messages = { role: "user", content: "Hello world" };
 
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
-    messages: [systemMessage, `${message}`],
+    messages: [systemMessage, { role: "user", content: `${message}` }],
     // messages: [{ role: "user", content: `${message}` }],
-    // temperature: 0.7,
+    // messages: [systemMessage, messages],
+    temperature: 0.7,
   });
 
   try {
-    res.status(200).ORGANIZATION_KEYjson({
+    res.status(200).json({
       message: response.data.choices[0].message,
     });
   } catch (err) {

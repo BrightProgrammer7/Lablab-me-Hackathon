@@ -1,6 +1,5 @@
 import { Configuration, OpenAIApi } from "openai";
 import dotenv from "dotenv";
-
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -8,11 +7,13 @@ import bodyParser from "body-parser";
 dotenv.config();
 const app = express();
 app.use(cors());
+// app.use(express.json());
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
 
 const configuration = new Configuration({
-    apiKey: process.env.OPENAI_KEY,
-    organization: process.env.ORGANIZATION_KEY,
+  apiKey: process.env.OPENAI_KEY,
+  organization: process.env.ORGANIZATION_KEY,
 });
 
 const openai = new OpenAIApi(configuration);
@@ -24,10 +25,10 @@ const openai = new OpenAIApi(configuration);
 // });
 // console.log(completion.data.choices[0].message);
 
-app.get("/gpt", (req, res) => {
-    res.status(200).send({
-        message: "hello from gpt",
-    });
+app.get("/", (req, res) => {
+  res.status(200).send({
+    message: "hello from gpt",
+  });
 });
 
 // export const chatbot = async (req, res) => {
@@ -64,26 +65,36 @@ app.get("/gpt", (req, res) => {
 //     return res.status(404).json({ message: err.message });
 //   }
 // };
-const systemMessage = {
-    role: "system",
-    content: "You are NewsGPT helpful assistant technologies news chatbot",
-};
 
 app.post("/", async (req, res) => {
-    const { messages } = req.body;
-    // const messages = { role: "user", content: "Hello world" };
+  const systemMessage = {
+    role: "system",
+    content: "You are NewsGPT helpful assistant technologies news chatbot",
+  };
+  const { message } = req.body;
+  //   const { messages } = { role: "user", content: req.body };
+  //   const { message } = JSON.parse(req.body);
 
+  //   const messages = { role: "user", content: "Hello world" };
 
-    const response = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
-        messages: [systemMessage, messages],
-        temperature: 0.7,
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [systemMessage, { role: "user", content: `${message}` }],
+    // messages: [{ role: "user", content: `${message}` }],
+    // messages: [systemMessage, messages],
+    temperature: 0.7,
+  });
+
+  try {
+    res.status(200).json({
+      message: response.data.choices[0].message,
     });
-
-    res.json({
-        message: response.data.choices[0].message,
-    });
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({ message: err.message });
+  }
 });
 
 app.listen(3001, () => {
-    console.log(`Server is running on http://localhost:3001`)});
+  console.log(`Server is running on http://localhost:3001`);
+});

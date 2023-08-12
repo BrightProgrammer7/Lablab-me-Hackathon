@@ -1,6 +1,5 @@
 import { Configuration, OpenAIApi } from "openai";
 import dotenv from "dotenv";
-
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -8,7 +7,6 @@ import bodyParser from "body-parser";
 dotenv.config();
 const app = express();
 app.use(cors());
-app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -73,24 +71,27 @@ app.post("/", async (req, res) => {
     content: "You are NewsGPT helpful assistant technologies news chatbot",
   };
   const { message } = req.body;
-  // const messages = { role: "user", content: "Hello world" };
+  //   const { messages } = { role: "user", content: req.body };
+  //   const { message } = JSON.parse(req.body);
+
+  //   const messages = { role: "user", content: "Hello world" };
 
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
-    messages: [systemMessage, `${message}`],
+    messages: [systemMessage, { role: "user", content: `${message}` }],
     // messages: [{ role: "user", content: `${message}` }],
-    // temperature: 0.7,
+    // messages: [systemMessage, messages],
+    temperature: 0.7,
   });
 
- 
   try {
-    res.json({
-        message: response.data.choices[0].message,
-      });
-} catch (err) {
-    //     console.log(err);
-    //     return res.status(404).json({ message: err.message });
-    //   }
+    res.status(200).json({
+      message: response.data.choices[0].message,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({ message: err.message });
+  }
 });
 
 app.listen(3001, () => {
